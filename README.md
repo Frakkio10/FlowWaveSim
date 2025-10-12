@@ -72,7 +72,7 @@ Use Nx, Ny = 512 for faster tests.
 The HDF5 structure is designed for easy parallel extensions.
 
 #                    AUTHOR
-Author: **FRANCESCO ORLACCHIO**
-Affiliation: **LABORATOIRE DE PHYSIQUE DES PLASMAS (LPPP) ECOLE POLYTECHNIQUE**
-Email: **fracnesco.orlacchio@lpp.polytechnique.fr**
+Author: **FRANCESCO ORLACCHIO** \n
+Affiliation: **LABORATOIRE DE PHYSIQUE DES PLASMAS (LPPP) ECOLE POLYTECHNIQUE** \n 
+Email: **fracnesco.orlacchio@lpp.polytechnique.fr** \n 
 License: MIT 

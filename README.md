@@ -4,20 +4,32 @@ Designed for tokamak edge plasma physics studies and fast prototyping of transpo
         
 #                    FEATURES
 2D grid-based propagation using FFT and gradient methods
+
 Supports:
+
   - Poloidal advection U_y(x)
+    
   - Shear flow (S ≠ 0)
+    
   - Optional phase velocity (ω = c|k|)
+    
   - Solid-body or differential rotation (Ω(x))
+    
 Real-valued fields via Hermitian symmetrization
+
 Output stored in HDF5 (*.h5) for portability
+
 Visualization and diagnostics included
 
 #                    ISTALLATION
 git clone https://github.com/<your-username>/tokamak-wave-sim.git
+
 cd FlowWaveSim
+
 python -m venv venv
+
 source venv/bin/activate    # (or venv\Scripts\activate on Windows)
+
 pip install -r requirements.txt
 
 

@@ -1,30 +1,6 @@
 #                   2D FLOW WAVE SIMULATION
 A lightweight, modular Python framework for simulating 2D wave and turbulence propagation in a rectangular plasma domain — including poloidal flow, shear, phase velocity, and optional rotation.
 Designed for tokamak edge plasma physics studies and fast prototyping of transport phenomena.
-
-#                    REPOSITORY STRUCTURE
-
-├──config/\\
-    └── definitions.py      # Root definitions and simulation name \\
-├──docs/\\
-    └── \\
-├──figures/\\
-├── output/ \\
-    ├── h5/ \\
-        └── run1.h5             # Example simulation output \\
-    ├── mp4/ \\
-        └── run1.mp4            # Corresponding animation \\
-    └── gif/
-        └── run1.mp4            # gif if ffmpeg is not available 
-        
-├──src/
-    ├── utils.py                # Utilities functions used in wave_simulations to make it less difficult to read
-    └── wave_simulation.py      # Main simulation script
-├──visualize/
-    ├── analyze_h5df.py         # Inspect & visualize simulation data interactively
-    └── make_movie.py           # Converts HDF5 data to MP4/gif animation
-└── README.md               # This file
-
         
 #                    FEATURES
 2D grid-based propagation using FFT and gradient methods

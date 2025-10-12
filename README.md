@@ -1,22 +1,19 @@
-# ======================================================
 #                   2D FLOW WAVE SIMULATION
-# ======================================================
 A lightweight, modular Python framework for simulating 2D wave and turbulence propagation in a rectangular plasma domain — including poloidal flow, shear, phase velocity, and optional rotation.
 Designed for tokamak edge plasma physics studies and fast prototyping of transport phenomena.
 
-# ======================================================
 #                    REPOSITORY STRUCTURE
-# ======================================================
-├──config/
-    └── definitions.py      # Root definitions and simulation name 
-├──docs/
-    └── 
-├──figures/
-├── output/
-    ├── h5/
-        └── run1.h5             # Example simulation output
-    ├── mp4/
-        └── run1.mp4            # Corresponding animation
+
+├──config/\\
+    └── definitions.py      # Root definitions and simulation name \\
+├──docs/\\
+    └── \\
+├──figures/\\
+├── output/ \\
+    ├── h5/ \\
+        └── run1.h5             # Example simulation output \\
+    ├── mp4/ \\
+        └── run1.mp4            # Corresponding animation \\
     └── gif/
         └── run1.mp4            # gif if ffmpeg is not available 
         
@@ -29,9 +26,7 @@ Designed for tokamak edge plasma physics studies and fast prototyping of transpo
 └── README.md               # This file
 
         
-# ======================================================
 #                    FEATURES
-# ======================================================
 2D grid-based propagation using FFT and gradient methods
 Supports:
   - Poloidal advection U_y(x)
@@ -42,9 +37,7 @@ Real-valued fields via Hermitian symmetrization
 Output stored in HDF5 (*.h5) for portability
 Visualization and diagnostics included
 
-# ======================================================
 #                    ISTALLATION
-# ======================================================
 git clone https://github.com/<your-username>/tokamak-wave-sim.git
 cd FlowWaveSim
 python -m venv venv
@@ -59,9 +52,7 @@ matplotlib
 h5py
 imageio[ffmpeg]
 
-# ======================================================
 #                   RUNNING A SIMULATION
-# ======================================================
 python wave_simulation.py
 
 
@@ -75,9 +66,7 @@ Save results to an HDF5 file (e.g. simulation_run1.h5)
 
 All parameters (grid size, shear, rotation, etc.) can be configured at the top of the script.
 
-# ======================================================
 #                    CREATING ANIMATION
-# ======================================================
 After simulation, generate an .mp4 movie:
 
 python visualize/make_movie.py simulation_run1.h5
@@ -92,17 +81,13 @@ Exports a smooth .mp4 video using FFmpeg
 
 Ensure ffmpeg is available (installed via pip install imageio[ffmpeg] or system package).
 
-# ======================================================
 #                    EXAMPLE OUTPUT
-# ======================================================
 Quantity	Visualization
 n(x, y, t=0)	
 n(x, y, t=end)	
 
 
-# ======================================================
 #                    USEFUL TIPS
-# ======================================================
 
 For stability, reduce dt or S if the field “explodes.”
 
@@ -110,9 +95,7 @@ Use Nx, Ny = 512 for faster tests.
 
 The HDF5 structure is designed for easy parallel extensions.
 
-# ======================================================
 #                    AUTHOR
-# ======================================================
 Author: **FRANCESCO ORLACCHIO**
 Affiliation: **LABORATOIRE DE PHYSIQUE DES PLASMAS (LPPP) ECOLE POLYTECHNIQUE**
 Email: **fracnesco.orlacchio@lpp.polytechnique.fr**

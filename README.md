@@ -26,19 +26,18 @@ git clone https://github.com/<your-username>/tokamak-wave-sim.git
 
 cd FlowWaveSim
 
-python -m venv venv
-
-source venv/bin/activate    # (or venv\Scripts\activate on Windows)
-
-pip install -r requirements.txt
+pip install --user --editable .
 
 
 If you don’t have a requirements.txt yet, use:
 
-numpy
-matplotlib
-h5py
-imageio[ffmpeg]
+        - numpy
+
+        - matplotlib
+        
+        - h5py
+
+        - imageio[ffmpeg]
 
 #                   RUNNING A SIMULATION
 python wave_simulation.py

@@ -11,7 +11,7 @@ Supports:
     
   - Shear flow (S ≠ 0)
     
-  - Optional phase velocity (ω = c|k|)
+  - Optional phase velocity (for the moment: ω = c|k|, later from GK)
     
   - Solid-body or differential rotation (Ω(x))
     

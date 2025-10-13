@@ -27,7 +27,7 @@ n_steps = 500
 save_every = 1
 
 # Physics options
-mode = "y_velocity + phase + shear"    # or "y_velocity", "y_velocity + phase"
+mode = "y_velocity"    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
 include_phase = "phase" in mode
 
 U0 = 5.0        # base poloidal velocity
@@ -36,7 +36,7 @@ c = 1.0         # phase velocity magnitude
 
 # Rotation options
 rotation = False
-Omega0 = 0.4
+Omega0 = 0.5
 differential_rotation = False
 center = (Lx/2, Ly/2)
 
@@ -45,9 +45,10 @@ init_type = "packet"     # "packet" or "plane"
 direction = "horizontal" # direction of propagation
 
 # Output file
-output_file = HD5_DIR.joinpath('prova3.h5')
+output_file = HD5_DIR.joinpath('prova1.h5')
 
-
+# prevent diffusion 
+anti_diffusion = True
 # ======================================================
 #                   NUMERICAL SETUP
 # ======================================================
@@ -67,25 +68,39 @@ omega_k = c * K_abs ** 2  # <-- restored phase velocity relation
 # ======================================================
 #           EVOLUTION OPERATOR (stable version)
 # ======================================================
-def evolve_one_step(nk, t, dt):
-    """Evolve n_k one time step (unitary propagation)."""
-    # Intrinsic phase propagation (Fourier space)
-    if include_phase:
-        nk *= np.exp(-1j * omega_k * dt)
-    n_xy = np.fft.ifft2(nk).astype(np.float64)
 
-    # Flow velocity field (real space)
+
+def evolve_one_step(nk, t, dt):
+    """
+    Hybrid split-step evolution:
+    - Half-step phase in Fourier space
+    - Full-step advection (via integer grid roll)
+    - Half-step phase again
+    """
+    # Half-step phase evolution (Fourier space)
+    if include_phase:
+        nk *= np.exp(-1j * omega_k * dt / 2)
+
+    # Go to real space
+    n_xy = np.fft.ifft2(nk).real
+
+    # Flow velocity field
     Uy = U_y_profile(x, Lx, U0, S, mode)[None, :].repeat(Ny, axis=0)
     Ux = np.zeros_like(Uy)
+
     if rotation:
         xc, yc = center
         Omega_x = Omega_profile(x, Lx, Omega0, differential_rotation)[None, :]
         Ux -= Omega_x * (Y - yc)
         Uy += Omega_x * (X - xc)
 
-    # Advection using stable shift (integer roll)
-    shift_y = (Uy * dt / (Ly / Ny)).astype(int)
-    shift_x = (Ux * dt / (Lx / Nx)).astype(int)
+    # Integer grid shifts for advection
+    dx = Lx / Nx
+    dy = Ly / Ny
+    shift_y = np.rint(Uy * dt / dy).astype(int)
+    shift_x = np.rint(Ux * dt / dx).astype(int)
+
+    # Apply shifts
     for i in range(Nx):
         n_xy[:, i] = np.roll(n_xy[:, i], shift_y[0, i])
     for j in range(Ny):
@@ -93,7 +108,14 @@ def evolve_one_step(nk, t, dt):
 
     # Transform back to Fourier space
     nk = np.fft.fft2(n_xy)
+
+    # Second half-step phase
+    if include_phase:
+        nk *= np.exp(-1j * omega_k * dt / 2)
+
     return nk
+
+
 
 # ======================================================
 #                    MAIN SIMULATION
@@ -110,15 +132,30 @@ with h5py.File(output_file, "w",  libver = "latest") as f:
         "init_type": init_type, "direction": direction
     })
 
-    print(f"\n🚀 Starting simulation ({mode})...")
+    print(f"\n Starting simulation ({mode})...")
     for step in range(n_steps):
         nk = evolve_one_step(nk, step * dt, dt)
         if step % save_every == 0:
             n_xy = field_from_nk(nk)
+            
+            # --- Optional anti-diffusion correction ---
+            if anti_diffusion:
+                # Compute total "energy" (L2 norm)
+                energy_now = np.sum(np.abs(n_xy)**2)
+                if step == 0:
+                    energy_ref = energy_now  # store initial energy
+                else:
+                    # Compute renormalization factor
+                    factor = np.sqrt(energy_ref / energy_now)
+                    n_xy *= factor
+                    # Recompute Fourier transform for next step
+                    nk = np.fft.fft2(n_xy)
+        
+        
             save_data(f, "evolution", True, n = n_xy)
             if step % 10 == 0:
                 print(f"Step {step}/{n_steps}: max|n| = {np.abs(n_xy).max():.3e}")
 
-print(f"\n✅ Simulation complete. Results saved to {output_file}\n")
+print(f"\n Simulation complete. Results saved to {output_file}\n")
 
 # %%

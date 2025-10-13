@@ -19,9 +19,9 @@ if len(sys.argv) < 2:
     print("Usage: python make_movie.py <file.h5>")
     sys.exit(1)
 
-filename = HD5_DIR.joinpath('prova3.h5')
+filename = HD5_DIR.joinpath('prova6.h5')
 if not filename.exists():
-    print(f"❌ File not found: {filename}")
+    print(f"File not found: {filename}")
     sys.exit(1)
 
 with h5py.File(filename, "r") as f:
@@ -64,16 +64,16 @@ def ffmpeg_available():
 
 try:
     if ffmpeg_available():
-        print(f"\n🎥 Using ffmpeg to render MP4: {out_mp4}")
+        print(f"\n Using ffmpeg to render MP4: {out_mp4}")
         writer = FFMpegWriter(fps=25, metadata=dict(artist="Tokamak Edge Simulation"))
         anim.save(out_mp4, writer=writer, dpi=150)
-        print(f"✅ MP4 saved to {out_mp4}\n")
+        print(f"MP4 saved to {out_mp4}\n")
     else:
         raise FileNotFoundError("ffmpeg not found")
 except Exception as e:
-    print(f"\n⚠️ Could not use ffmpeg ({e}). Switching to Pillow (GIF).")
+    print(f"\n Could not use ffmpeg ({e}). Switching to Pillow (GIF).")
     writer = PillowWriter(fps=15)
     anim.save(out_gif, writer=writer)
-    print(f"✅ GIF saved to {out_gif}\n")
+    print(f"GIF saved to {out_gif}\n")
 
 # %%

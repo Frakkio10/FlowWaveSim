@@ -82,15 +82,20 @@ def field_from_nk(nk):
 
 
 # ======================================================
-# ⚙️ PHYSICS: FLOW PROFILES
+#            PHYSICS: FLOW PROFILES
 # ======================================================
 def U_y_profile(x, Lx, U0, S, mode):
     """Radial profile of poloidal flow."""
-    return U0 + (S * (x - Lx/2) if "shear" in mode else 0)
+    if "shear" in mode:
+        U0 += S * (x - Lx/2)
+    else:
+        U0 *= np.ones_like(x)
+    return U0
 
 
 def Omega_profile(x, Lx, Omega0, differential_rotation):
     """Radial profile of angular velocity (for differential rotation)."""
     if differential_rotation:
-        return Omega0 * (1 + 0.5*np.sin(2*np.pi*(x - Lx/2)/Lx))
+        return Omega0 * (1 + 0.5*np.sin(2*np.pi*(x - Lx/2)/Lx)) 
     return Omega0 * np.ones_like(x)
+# %%

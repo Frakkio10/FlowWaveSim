@@ -4,9 +4,9 @@
 Models propagation in a rectangular box with:
  - Poloidal advection (U_y)
  - Optional phase velocity (ω = c|k|)
- - Radial shear (U_y(x)) --> to implement
- - Optional solid-body or differential rotation (Ω or Ω(x)) --> to implement
- - HDF5 output of all frames using save_data()
+ - Radial shear (U_y(x))                                    --> to implement / improve
+ - Optional solid-body or differential rotation (Ω or Ω(x)) --> to implement / improve
+ - HDF5 output of all frames using save_data() from Ozgur
 
 """
 #%%
@@ -27,11 +27,11 @@ n_steps = 500
 save_every = 1
 
 # Physics options
-mode = "y_velocity"    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
+mode = "y_velocity + phase + shear"    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
 include_phase = "phase" in mode
 
 U0 = 5.0        # base poloidal velocity
-S = 0           # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
+S = 0.3           # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
 c = 1.0         # phase velocity magnitude
 
 # Rotation options
@@ -45,10 +45,11 @@ init_type = "packet"     # "packet" or "plane"
 direction = "horizontal" # direction of propagation
 
 # Output file
-output_file = HD5_DIR.joinpath('prova1.h5')
+output_file = HD5_DIR.joinpath('prova3.h5')
 
 # prevent diffusion 
 anti_diffusion = True
+
 # ======================================================
 #                   NUMERICAL SETUP
 # ======================================================
@@ -60,7 +61,11 @@ kx = 2 * np.pi * np.fft.fftfreq(Nx, d = Lx / Nx)
 ky = 2 * np.pi * np.fft.fftfreq(Ny, d = Ly / Ny)
 KX, KY = np.meshgrid(kx, ky, indexing="xy")
 K_abs = np.sqrt(KX ** 2 + KY ** 2)
-omega_k = c * K_abs ** 2  # <-- restored phase velocity relation
+
+# ======================================================
+#                   Phase velocity
+# ======================================================
+omega_k = c * K_abs   
 
 
 
@@ -140,7 +145,7 @@ with h5py.File(output_file, "w",  libver = "latest") as f:
             
             # --- Optional anti-diffusion correction ---
             if anti_diffusion:
-                # Compute total "energy" (L2 norm)
+                # Compute total "energy" 
                 energy_now = np.sum(np.abs(n_xy)**2)
                 if step == 0:
                     energy_ref = energy_now  # store initial energy
@@ -152,7 +157,7 @@ with h5py.File(output_file, "w",  libver = "latest") as f:
                     nk = np.fft.fft2(n_xy)
         
         
-            save_data(f, "evolution", True, n = n_xy)
+            save_data(f, "fields", True, n = n_xy)   
             if step % 10 == 0:
                 print(f"Step {step}/{n_steps}: max|n| = {np.abs(n_xy).max():.3e}")
 

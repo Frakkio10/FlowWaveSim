@@ -1,7 +1,7 @@
 #%%
 import h5py, matplotlib.pyplot as plt
 
-filename = '/Users/FO278650/Desktop/FlowWaveSim/wave_simulation.h5'
+filename = '/Users/FO278650/Desktop/FlowWaveSim/output/h5/prova3.h5'
 
 """
 analysis_h5.py
@@ -26,13 +26,13 @@ if len(sys.argv) < 2:
 # filename = sys.argv[1]
 
 with h5py.File(filename, "r") as f:
-    print(f"\n📂 File: {filename}")
+    print(f"File: {filename}")
     print(f"{'-'*40}\n")
 
     # --------------------------------------
     # List attributes (simulation parameters)
     # --------------------------------------
-    print("🔹 Attributes:")
+    print("Attributes:")
     for key, val in f.attrs.items():
         print(f"  {key}: {val}")
     print()
@@ -40,9 +40,9 @@ with h5py.File(filename, "r") as f:
     # --------------------------------------
     # List all groups and datasets
     # --------------------------------------
+    print('Structure;')
     def print_h5_structure(name, obj):
-        prefix = "📁" if isinstance(obj, h5py.Group) else "📄"
-        print(f" {prefix} {name}")
+        print(f" {name}")
     f.visititems(print_h5_structure)
 
     print("\n" + "-"*40)
@@ -54,10 +54,12 @@ with h5py.File(filename, "r") as f:
     y = f["grid/y"][:]
     n_data = f["evolution/n"][:]  # shape = (Nt, Ny, Nx)
     Nt, Ny, Nx = n_data.shape
-    print(f"✅ Data shape: n(x,y,t) = {n_data.shape}")
-    print(f"   Grid: Nx={Nx}, Ny={Ny}, Nt={Nt}")
-    print(f"   x ∈ [{x.min():.2f}, {x.max():.2f}], y ∈ [{y.min():.2f}, {y.max():.2f}]\n")
+    print(f"Data shape: n(x,y,t) = {n_data.shape}")
+    print(f"Grid: Nx={Nx}, Ny={Ny}, Nt={Nt}")
+    print(f"x ∈ [{x.min():.2f}, {x.max():.2f}], y ∈ [{y.min():.2f}, {y.max():.2f}]\n")
 
+
+#%%
 # ==========================================
 # 2️⃣ INTERACTIVE FRAME PLOTTING
 # ==========================================

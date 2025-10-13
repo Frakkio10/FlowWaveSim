@@ -19,13 +19,13 @@ if len(sys.argv) < 2:
     print("Usage: python make_movie.py <file.h5>")
     sys.exit(1)
 
-filename = HD5_DIR.joinpath('prova6.h5')
+filename = HD5_DIR.joinpath('prova3.h5')
 if not filename.exists():
     print(f"File not found: {filename}")
     sys.exit(1)
 
 with h5py.File(filename, "r") as f:
-    n = f["evolution/n"][:]
+    n = f["fields/n"][:]
     x = f["grid/x"][:]
     y = f["grid/y"][:]
 

@@ -22,7 +22,7 @@ Output stored in HDF5 (*.h5) for portability
 Visualization and diagnostics included
 
 #                    ISTALLATION
-git clone [https://github.com/<your-username>/tokamak-wave-sim.git](https://github.com/Frakkio10/FlowWaveSim.git)
+git clone [https://github.com/<your-username>/Flow-wave-sim.git](https://github.com/Frakkio10/FlowWaveSim.git)
 
 cd FlowWaveSim
 

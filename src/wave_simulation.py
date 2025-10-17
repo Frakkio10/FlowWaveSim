@@ -13,26 +13,26 @@ Models propagation in a rectangular box with:
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-from src.utils import save_data, initialize_field, field_from_nk, U_y_profile, Omega_profile
+from src.utils import save_data, initialize_field, field_from_nk, U_y_profile, Omega_profile, dispersion_rel
 from config.definitions import HD5_DIR
-
+import os
 #%%
 # ======================================================
 #                    USER CONFIGURATION
 # ======================================================
-Nx, Ny = 1024, 1024                  # grid resolution
+Nx, Ny = 512, 512                  # grid resolution
 Lx, Ly = 10, 10                      # box dimensions
 dt = 0.02
-n_steps = 500
+n_steps = 200
 save_every = 1
 
 # Physics options
-mode = "y_velocity + phase + shear"    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
+mode = "phase "    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
 include_phase = "phase" in mode
 
-U0 = 5.0        # base poloidal velocity
-S = 0.3           # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
-c = 1.0         # phase velocity magnitude
+U0 = 0        # base poloidal velocity
+S  = 0          # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
+c  = 0       # phase velocity magnitude
 
 # Rotation options
 rotation = False
@@ -43,9 +43,14 @@ center = (Lx/2, Ly/2)
 # Initial condition
 init_type = "packet"     # "packet" or "plane"
 direction = "horizontal" # direction of propagation
+disp_type = 'complex'      # 'quadratic
 
+#%%
 # Output file
-output_file = HD5_DIR.joinpath('prova3.h5')
+output_file = HD5_DIR.joinpath('trial/complex_3.h5')
+
+if not output_file.parent.exists():
+    os.makedirs(output_file.parent)
 
 # prevent diffusion 
 anti_diffusion = True
@@ -65,11 +70,14 @@ K_abs = np.sqrt(KX ** 2 + KY ** 2)
 # ======================================================
 #                   Phase velocity
 # ======================================================
-omega_k = c * K_abs   
+beta_x = 2
+beta_y = 0
+# omega_k = c * KY  + beta_x * KX ** 2 + beta_y * KY ** 2
+# omega_k = np.where(KY>=0, c_pos * KY, c_neg * KY)
+omega_k = c * KY
 
-
-
-
+# plt.plot(KY, omega_k)
+#%%
 # ======================================================
 #           EVOLUTION OPERATOR (stable version)
 # ======================================================
@@ -134,7 +142,7 @@ with h5py.File(output_file, "w",  libver = "latest") as f:
         "mode": mode, "U0": U0, "S": S, "c": c, "dt": dt,
         "rotation": rotation, "Omega0": Omega0,
         "differential_rotation": differential_rotation,
-        "init_type": init_type, "direction": direction
+        "init_type": init_type, "direction": direction, 'dispersion': disp_type
     })
 
     print(f"\n Starting simulation ({mode})...")

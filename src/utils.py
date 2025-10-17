@@ -75,10 +75,23 @@ def initialize_field(init_type, Nx, Ny, Lx, Ly, KX, KY, direction = 'horizontal'
 # ======================================================
 #                       UTILITY
 # ======================================================
+def rms(variable):
+    return np.sqrt(np.mean(variable * np.conjugate(variable)) )
+
+
 def field_from_nk(nk): 
     return np.real(np.fft.ifft2(nk))
 
-#%%
+
+# ======================================================
+#    PHYSICS: Dispersion relation -> to implement
+# ======================================================
+
+def _dispersion_rel(disp_type, c, K_abs):
+    if disp_type == 'linear':
+        return c * K_abs
+    elif disp_type == 'quadratic':
+        return c * K_abs ** 2 - 2 *c * K_abs ** 2
 
 
 # ======================================================

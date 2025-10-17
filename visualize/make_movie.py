@@ -19,7 +19,8 @@ if len(sys.argv) < 2:
     print("Usage: python make_movie.py <file.h5>")
     sys.exit(1)
 
-filename = HD5_DIR.joinpath('prova3.h5')
+filename = HD5_DIR.joinpath('trial/complex_3.h5')
+    
 if not filename.exists():
     print(f"File not found: {filename}")
     sys.exit(1)
@@ -66,6 +67,10 @@ try:
     if ffmpeg_available():
         print(f"\n Using ffmpeg to render MP4: {out_mp4}")
         writer = FFMpegWriter(fps=25, metadata=dict(artist="Tokamak Edge Simulation"))
+        
+        if not out_mp4.parent.exists():
+            os.makedirs(out_mp4.parent)
+    
         anim.save(out_mp4, writer=writer, dpi=150)
         print(f"MP4 saved to {out_mp4}\n")
     else:
@@ -73,6 +78,9 @@ try:
 except Exception as e:
     print(f"\n Could not use ffmpeg ({e}). Switching to Pillow (GIF).")
     writer = PillowWriter(fps=15)
+    if not out_gif.parent.exists():
+            os.makedirs(out_gif.parent)
+    
     anim.save(out_gif, writer=writer)
     print(f"GIF saved to {out_gif}\n")
 

@@ -13,13 +13,14 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter
 import shutil
 from pathlib import Path
 from config import HD5_DIR, MP4_DIR, GIF_DIR
+import os 
 
 # ------------------ LOAD DATA ------------------
 if len(sys.argv) < 2:
     print("Usage: python make_movie.py <file.h5>")
     sys.exit(1)
 
-filename = HD5_DIR.joinpath('trial/complex_3.h5')
+filename = HD5_DIR.joinpath('tilt/advection_only.h5')
     
 if not filename.exists():
     print(f"File not found: {filename}")
@@ -55,8 +56,9 @@ anim = FuncAnimation(fig, update, frames=Nt, interval=40, blit=False)
 
 # ------------------ OUTPUT PATHS ------------------
 
-out_mp4 = MP4_DIR.joinpath(filename.name).with_suffix('.mp4')
-out_gif = GIF_DIR.joinpath(filename.name).with_suffix('.gif')
+out_mp4 = MP4_DIR.joinpath(filename.parent).joinpath(filename.name).with_suffix('.mp4')
+out_gif = GIF_DIR.joinpath(str(filename.parent.name) + '/').joinpath(filename.name).with_suffix('.gif')
+
 
 # ------------------ TRY FFMPEG FIRST ------------------
 def ffmpeg_available():

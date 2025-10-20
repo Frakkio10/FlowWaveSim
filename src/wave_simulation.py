@@ -13,24 +13,24 @@ Models propagation in a rectangular box with:
 import numpy as np
 import h5py
 import matplotlib.pyplot as plt
-from src.utils import save_data, initialize_field, field_from_nk, U_y_profile, Omega_profile, dispersion_rel
+from src.utils import save_data, initialize_field, field_from_nk, U_y_profile, Omega_profile
 from config.definitions import HD5_DIR
 import os
 #%%
 # ======================================================
 #                    USER CONFIGURATION
 # ======================================================
-Nx, Ny = 512, 512                  # grid resolution
-Lx, Ly = 10, 10                      # box dimensions
-dt = 0.02
-n_steps = 200
+nx, ny     = 1024, 1024                  # grid resolution
+dx         = 2e-4
+dt         = 0.02
+n_steps    = 200
 save_every = 1
 
 # Physics options
-mode = "phase "    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
+mode = "y_velocity "    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
 include_phase = "phase" in mode
 
-U0 = 0        # base poloidal velocity
+U0 = 3.0 *1e-2       # base poloidal velocity
 S  = 0          # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
 c  = 0       # phase velocity magnitude
 
@@ -38,16 +38,16 @@ c  = 0       # phase velocity magnitude
 rotation = False
 Omega0 = 0.5
 differential_rotation = False
-center = (Lx/2, Ly/2)
+center = ((nx * dx)/2, (ny * dx)/2)
 
 # Initial condition
-init_type = "packet"     # "packet" or "plane"
+init_type = "tilt"     # "packet" , "plane" or 'tilt' 
 direction = "horizontal" # direction of propagation
 disp_type = 'complex'      # 'quadratic
 
 #%%
 # Output file
-output_file = HD5_DIR.joinpath('trial/complex_3.h5')
+output_file = HD5_DIR.joinpath('tilt/advection_only.h5')
 
 if not output_file.parent.exists():
     os.makedirs(output_file.parent)
@@ -58,14 +58,17 @@ anti_diffusion = True
 # ======================================================
 #                   NUMERICAL SETUP
 # ======================================================
-x = np.linspace(0, Lx, Nx, endpoint=False)
-y = np.linspace(0, Ly, Ny, endpoint=False)
+
+x = np.linspace(0, nx * dx, nx, endpoint=False)
+y = np.linspace(0, nx * dx, ny, endpoint=False)
 X, Y = np.meshgrid(x, y, indexing="xy")
 
-kx = 2 * np.pi * np.fft.fftfreq(Nx, d = Lx / Nx)
-ky = 2 * np.pi * np.fft.fftfreq(Ny, d = Ly / Ny)
-KX, KY = np.meshgrid(kx, ky, indexing="xy")
-K_abs = np.sqrt(KX ** 2 + KY ** 2)
+kx = 2 * np.pi * np.fft.fftfreq(nx, d=dx)   # range: -1/(2dx) ... +1/(2dx) (in cycles/unit)
+ky = 2 * np.pi * np.fft.fftfreq(ny, d=dx)
+kx = np.fft.fftshift(kx)   # now -kNyq..+kNyq in order
+ky = np.fft.fftshift(ky)
+KX, KY = np.meshgrid(kx, ky)
+
 
 # ======================================================
 #                   Phase velocity
@@ -98,25 +101,23 @@ def evolve_one_step(nk, t, dt):
     n_xy = np.fft.ifft2(nk).real
 
     # Flow velocity field
-    Uy = U_y_profile(x, Lx, U0, S, mode)[None, :].repeat(Ny, axis=0)
+    Uy = U_y_profile(x, nx * dx, U0, S, mode)[None, :].repeat(ny, axis=0)
     Ux = np.zeros_like(Uy)
 
     if rotation:
         xc, yc = center
-        Omega_x = Omega_profile(x, Lx, Omega0, differential_rotation)[None, :]
+        Omega_x = Omega_profile(x, nx * dx, Omega0, differential_rotation)[None, :]
         Ux -= Omega_x * (Y - yc)
         Uy += Omega_x * (X - xc)
 
     # Integer grid shifts for advection
-    dx = Lx / Nx
-    dy = Ly / Ny
-    shift_y = np.rint(Uy * dt / dy).astype(int)
+    shift_y = np.rint(Uy * dt / dx).astype(int)
     shift_x = np.rint(Ux * dt / dx).astype(int)
 
     # Apply shifts
-    for i in range(Nx):
+    for i in range(nx):
         n_xy[:, i] = np.roll(n_xy[:, i], shift_y[0, i])
-    for j in range(Ny):
+    for j in range(ny):
         n_xy[j, :] = np.roll(n_xy[j, :], shift_x[j, 0])
 
     # Transform back to Fourier space
@@ -133,9 +134,13 @@ def evolve_one_step(nk, t, dt):
 # ======================================================
 #                    MAIN SIMULATION
 # ======================================================
-nk   = initialize_field(init_type, Nx, Ny, Lx, Ly, KX, KY)
+nk   = initialize_field(init_type, nx, ny, dx, KX, KY, beta = 45)
 n_xy = field_from_nk(nk)
 
+im = plt.pcolormesh(x, y, n_xy, cmap = 'seismic')
+plt.colorbar(im)
+
+#%%
 with h5py.File(output_file, "w",  libver = "latest") as f:
     save_data(f, "grid", False, x = x, y = y)
     f.attrs.update({
@@ -171,4 +176,7 @@ with h5py.File(output_file, "w",  libver = "latest") as f:
 
 print(f"\n Simulation complete. Results saved to {output_file}\n")
 
+# %%
+im = plt.pcolormesh(x, y, n_xy, cmap = 'seismic')
+plt.colorbar(im)
 # %%

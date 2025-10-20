@@ -53,7 +53,7 @@ def hermitianize(nk):
             nk_sym[iy, ix] = 0.5*(nk[iy, ix] + np.conj(nk[-iy % Ny_, -ix % Nx_]))
     return nk_sym
 
-def initialize_field(init_type, Nx, Ny, Lx, Ly, KX, KY, direction = 'horizontal'):
+def _initialize_field(init_type, Nx, Ny, Lx, Ly, KX, KY, direction = 'horizontal'):
     nk = np.zeros((Ny, Nx), dtype=np.complex128)
     if init_type == "plane":
         m = 4 if direction == "horizontal" else 0
@@ -72,15 +72,60 @@ def initialize_field(init_type, Nx, Ny, Lx, Ly, KX, KY, direction = 'horizontal'
         raise ValueError("Invalid init_type")
     return hermitianize(nk)
 
+def initialize_field(init_type, nx, ny, dx, KX, KY, **kwargs):
+    spec_centered = np.zeros((ny, nx), dtype=np.complex128)
+    phi           = 2 * np.pi * np.random.random((ny, nx)) - np.pi
+
+    if init_type == "plane":
+        m = 4 if kwargs.get('direction', 'horizontal') == "horizontal" else 0
+        n = 4 if kwargs.get('direction', 'horizontal') == "vertical" else 0
+        kx0, ky0 = 2 * np.pi * m / (nx * dx), 2 * np.pi * n / (ny * dx)
+        ix = np.argmin(np.abs(KX[0, :] - kx0))
+        iy = np.argmin(np.abs(KY[:, 0] - ky0))
+        spec_centered[iy, ix] = 1.0
+        
+    elif init_type == "packet":
+        sigma_k = nx * dx * 5e2
+        kx_c = 2 * np.pi *4 / (nx * dx) if kwargs.get('direction', 'horizontal') == "horizontal" else 0.0
+        ky_c = 2 * np.pi *4 / (ny * dx) if kwargs.get('direction', 'horizontal') == "vertical" else 0.0
+        spec_centered = np.exp(-0.5*((KX - kx_c)**2 + (KY - ky_c)**2) / sigma_k**2)
+        
+    elif init_type == 'tilt':
+        lmin, lmax = kwargs.get('lmin', 0.5 *1e-2), kwargs.get('lmax', 1.4 *1e-2)
+        beta = np.pi / 2 - kwargs.get('beta', 20) * np.pi / 180.0
+
+        A = (KX * np.cos(beta) - KY * np.sin(beta)) ** 2 * lmin ** 2
+        B = (KX * np.sin(beta) + KY * np.cos(beta)) ** 2 * lmax ** 2
+        norm = lmin * lmax / (8.0 * np.pi)
+        spec_centered = norm * np.exp(-(A + B) / 8.0) 
+    
+    else:
+        raise ValueError("Invalid init_type")
+    
+    nk = hermitianize(spec_centered * np.exp(1j * phi))
+    # spec_for_ifft = np.fft.ifftshift(nk)
+    # Z             = np.fft.ifft2(spec_for_ifft).real
+    # delta_ne = Z.copy()
+    # delta_ne /= rms(delta_ne) 
+    return np.fft.ifftshift(nk)
+
+
+
 # ======================================================
 #                       UTILITY
 # ======================================================
-def rms(variable):
+def _rms(variable):
     return np.sqrt(np.mean(variable * np.conjugate(variable)) )
 
+def rms(v):
+    return np.sqrt(np.mean(np.abs(v)**2))
 
 def field_from_nk(nk): 
-    return np.real(np.fft.ifft2(nk))
+    # spec_for_ifft = np.fft.ifftshift(nk)
+    Z = np.fft.ifft2(nk).real 
+    delta_ne = Z.copy()
+    delta_ne /= rms(delta_ne) 
+    return delta_ne
 
 
 # ======================================================
@@ -100,7 +145,7 @@ def _dispersion_rel(disp_type, c, K_abs):
 def U_y_profile(x, Lx, U0, S, mode):
     """Radial profile of poloidal flow."""
     if "shear" in mode:
-        U0 += S * (x - Lx/2)
+        U0 += S * (x - Lx / 2)
     else:
         U0 *= np.ones_like(x)
     return U0

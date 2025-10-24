@@ -88,6 +88,7 @@ def initialize_field(init_type, nx, ny, dx, KX, KY, **kwargs):
         sigma_k = nx * dx * 5e2
         kx_c = 2 * np.pi *4 / (nx * dx) if kwargs.get('direction', 'horizontal') == "horizontal" else 0.0
         ky_c = 2 * np.pi *4 / (ny * dx) if kwargs.get('direction', 'horizontal') == "vertical" else 0.0
+        norm = 1 / (2 * np.pi * sigma_k ** 2)
         spec_centered = np.exp(-0.5*((KX - kx_c)**2 + (KY - ky_c)**2) / sigma_k**2)
         
     elif init_type == 'tilt':
@@ -145,7 +146,8 @@ def _dispersion_rel(disp_type, c, K_abs):
 def U_y_profile(x, Lx, U0, S, mode):
     """Radial profile of poloidal flow."""
     if "shear" in mode:
-        U0 += S * (x - Lx / 2)
+        #U0 += S * x #(x - Lx / 2)
+        U0 += S * np.tanh(4 * (x - Lx/2) / Lx)
     else:
         U0 *= np.ones_like(x)
     return U0

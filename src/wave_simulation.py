@@ -20,19 +20,19 @@ import os
 # ======================================================
 #                    USER CONFIGURATION
 # ======================================================
-nx, ny     = 1024, 1024                  # grid resolution
-dx         = 2e-4
-dt         = 0.02
+nx, ny     = 512, 512                  # grid resolution
+dx         = 4e-4 # m
+dt         = 1e-4 #s 
 n_steps    = 200
 save_every = 1
 
 # Physics options
-mode = "y_velocity "    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
+mode = "y_velocity + phase "    # or "y_velocity", "y_velocity + phase", "y_velocity + phase + shear", 
 include_phase = "phase" in mode
 
-U0 = 3.0 *1e-2       # base poloidal velocity
-S  = 0          # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
-c  = 0       # phase velocity magnitude
+U0 = 4.0 # 4.0        # base poloidal velocity m/s
+S  = 0 # 0.5 * 1e-2          # shear rate (for U_y(x) = U0 + S*(x - Lx/2))
+c  = 1e-1        # phase velocity magnitude
 
 # Rotation options
 rotation = False
@@ -45,9 +45,12 @@ init_type = "tilt"     # "packet" , "plane" or 'tilt'
 direction = "horizontal" # direction of propagation
 disp_type = 'complex'      # 'quadratic
 
+
+
+
 #%%
 # Output file
-output_file = HD5_DIR.joinpath('tilt/advection_only.h5')
+output_file = HD5_DIR.joinpath('tilt/advection_linear.h5')
 
 if not output_file.parent.exists():
     os.makedirs(output_file.parent)
@@ -69,17 +72,14 @@ kx = np.fft.fftshift(kx)   # now -kNyq..+kNyq in order
 ky = np.fft.fftshift(ky)
 KX, KY = np.meshgrid(kx, ky)
 
-
 # ======================================================
 #                   Phase velocity
 # ======================================================
-beta_x = 2
-beta_y = 0
+
 # omega_k = c * KY  + beta_x * KX ** 2 + beta_y * KY ** 2
 # omega_k = np.where(KY>=0, c_pos * KY, c_neg * KY)
 omega_k = c * KY
-
-# plt.plot(KY, omega_k)
+# omega_k = c *1e-6 * ky ** 2
 #%%
 # ======================================================
 #           EVOLUTION OPERATOR (stable version)
@@ -95,7 +95,7 @@ def evolve_one_step(nk, t, dt):
     """
     # Half-step phase evolution (Fourier space)
     if include_phase:
-        nk *= np.exp(-1j * omega_k * dt / 2)
+        nk *= np.exp(1j * omega_k * dt / 2)
 
     # Go to real space
     n_xy = np.fft.ifft2(nk).real
@@ -125,7 +125,7 @@ def evolve_one_step(nk, t, dt):
 
     # Second half-step phase
     if include_phase:
-        nk *= np.exp(-1j * omega_k * dt / 2)
+        nk *= np.exp(1j * omega_k * dt / 2)
 
     return nk
 
@@ -142,7 +142,8 @@ plt.colorbar(im)
 
 #%%
 with h5py.File(output_file, "w",  libver = "latest") as f:
-    save_data(f, "grid", False, x = x, y = y)
+    save_data(f, "grid", False, x = x, y = y, kx = kx, ky = ky)
+    save_data(f, "parameters", False, nx = nx, ny = ny, dx = dx)
     f.attrs.update({
         "mode": mode, "U0": U0, "S": S, "c": c, "dt": dt,
         "rotation": rotation, "Omega0": Omega0,
@@ -179,4 +180,6 @@ print(f"\n Simulation complete. Results saved to {output_file}\n")
 # %%
 im = plt.pcolormesh(x, y, n_xy, cmap = 'seismic')
 plt.colorbar(im)
+
+
 # %%

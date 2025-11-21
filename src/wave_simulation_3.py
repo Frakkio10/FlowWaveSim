@@ -61,7 +61,7 @@ n_xy      = field_from_nk(n_kx_ky)
 # ======================================================
 
 # plt.pcolormesh(x, y, n_xy, cmap = 'seismic')
-# plot_spectrum(n_xy, kx, ky)
+plot_spectrum(n_xy, kx, ky)
 #%%
 n_xky0 = np.fft.fft(n_xy.T, axis=1)   # shape (nx, nky)
 nx_check, nky = n_xky0.shape

@@ -285,7 +285,7 @@ def plot_spectrum(delta_ne, kx, ky, ax = None, fig = None):
     ax[2].set_xlabel(r"$k$ [cm$^{-1}$]")
     ax[2].set_ylabel(r'1D directional spectrum [a.u.]')
     
-    k, S = isotropic_spectrum(F**0.5, _kx, _ky)
+    k, S = isotropic_spectrum(F, _kx, _ky)
     E = 2 * np.pi * k * S    
     ax[3].loglog(k * 1e-2, S / S.max(),c = 'r', label="S(k)")
     ax[3].loglog(k * 1e-2, E / E.max(),c = 'b', label="E(k)")
